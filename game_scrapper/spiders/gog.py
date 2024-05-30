@@ -41,8 +41,8 @@ class GogSpider(Spider):
                 "price": price, # BRL
                 "release_date": release_date.replace(".", "-") if release_date else release_date,  # Format: yyyy-mm-dd
                 "genres": [genre.get("name") for genre in product.get("genres", [])], # List of genres
-                "developer": product.get("developers")[0],
-                "publisher": product.get("publishers")[0],
+                "developer": product.get("developers", [])[0],
+                "publisher": product.get("publishers", [])[0],
             }
 
         # Check for next pages
