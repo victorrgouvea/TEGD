@@ -7,9 +7,6 @@ BASE_URL = 'https://store.epicgames.com/graphql'
 
 GENRES_URL = 'https://store.epicgames.com/graphql?operationName=getStoreTagsByGroupName&variables=%7B"storeId":"EGS","groupName":"event%7Cfeature%7Cepicfeature%7Cgenre%7Cplatform%7Csubscription","locale":"pt-BR","sortBy":"name","sortDir":"ASC"%7D&extensions=%7B"persistedQuery":%7B"version":1,"sha256Hash":"15fffcb1dddbd6ae365a603b44784853264126d9eb24098660a9e5e9eaf2ba26"%7D%7D'
 
-PARAMS = '?operationName=searchStoreQuery&variables=%7B"allowCountries":"BR","category":"games%2Fedition%2Fbase"' \
-            ',"count":1000,"country":"BR","keywords":"","locale":"pt-BR","sortBy":"relevancy,viewableDate","sortDir":"DESC,DESC","tag":"","withPrice":true%7D&extensions=%7B' \
-            '"persistedQuery":%7B"version":1,"sha256Hash":"7d58e12d9dd8cb14c84a3ff18d360bf9f0caa96bf218f2c5fda68ba88d68a437"%7D%7D'
 
 class EpicGamesSpider(Spider):
     name = "epic_games"
@@ -18,7 +15,18 @@ class EpicGamesSpider(Spider):
 
     genres = {}
 
+    def get_genres(self, tags):
+        genres = []
+
+        for tag in tags:
+            genre = self.genres.get(tag)
+            if genre:
+                genres.append(genre)
+
+        return genres
+
     def start_requests(self):
+        # Parse genres and build a dict for them first
         yield Request(
             url=GENRES_URL,
             callback=self.parse_genres,
@@ -30,16 +38,17 @@ class EpicGamesSpider(Spider):
         genres = data.get("elements", [])
 
         for genre in genres:
-            id = genre.get("id")
-            name = genre.get("name")
+            if genre.get('groupName') == 'genre':
+                id = genre.get("id")
+                name = genre.get("name")
 
-            if id and name:
-                self.genres[id] = name
+                if id and name:
+                    self.genres[id] = name
 
         # After getting genres, start the main request
         yield Request(
             url=f'{BASE_URL}?operationName=searchStoreQuery&variables=%7B"allowCountries":"BR","category":"games%2Fedition%2Fbase"' \
-            ',"count":500,"country":"BR","keywords":"","locale":"pt-BR","sortBy":"relevancy,viewableDate","sortDir":"DESC,DESC","tag":"","withPrice":true%7D&extensions=%7B' \
+            ',"count":1000,"country":"BR","keywords":"","locale":"pt-BR","sortBy":"relevancy,viewableDate","sortDir":"DESC,DESC","tag":"","withPrice":true%7D&extensions=%7B' \
             '"persistedQuery":%7B"version":1,"sha256Hash":"7d58e12d9dd8cb14c84a3ff18d360bf9f0caa96bf218f2c5fda68ba88d68a437"%7D%7D',
             callback=self.parse,
             meta={"count": 1000},
@@ -54,17 +63,18 @@ class EpicGamesSpider(Spider):
 
             price = product.get("price", {}).get("totalPrice", {}).get("fmtPrice", {}).get("originalPrice", {})
 
-            tags = [tag.get("id") for tag in data.get("tags", [])]
-            genres = [self.genres.get(tag) for tag in tags]
+            # Get genres already scrapped based on tags
+            tags = [tag.get("id") for tag in product.get("tags", [])]
+            genres = self.get_genres(tags)
 
             # Save information about each game
             yield {
                 "title": product.get("title"),
                 "price": price.replace("R$", "").strip(),  # BRL
-                "release_date": product.get("releaseDate").split("T")[0],  # Format: yyyy-mm-dd
+                "release_date": product.get("releaseDate").split("T")[0] if product.get("releaseDate") else "TBA",  # Format: yyyy-mm-dd
                 "genres": genres,  # List of genres
                 "developer": product.get("developerDisplayName"),
-                "publisher": product.get("publicherDisplayName"),
+                "publisher": product.get("publisherDisplayName"),
             }
 
         # Check for next pages
@@ -77,5 +87,5 @@ class EpicGamesSpider(Spider):
                     f',"count":1000,"country":"BR","start":{count},"keywords":"","locale":"pt-BR","sortBy":"relevancy,viewableDate","sortDir":"DESC,DESC","tag":"","withPrice":true%7D&extensions=%7B' \
                     '"persistedQuery":%7B"version":1,"sha256Hash":"7d58e12d9dd8cb14c84a3ff18d360bf9f0caa96bf218f2c5fda68ba88d68a437"%7D%7D',
                 callback=self.parse,
-                meta={"count": count + 1000},
+                meta={"count": count + 1000}, # set the start for next request
             )
