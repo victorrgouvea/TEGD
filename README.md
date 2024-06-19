@@ -1,4 +1,4 @@
-# GamingScrapy
+# GameScrapper
 
 Trabalho da disciplina de Tópicos Especiais em Gerência de Dados da UFSC
 
