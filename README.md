@@ -6,12 +6,12 @@ Trabalho da disciplina de Tópicos Especiais em Gerência de Dados da UFSC
 
 Utilizando o framework [Scrapy](https://scrapy.org) criamos crawlers com o objetivo de coletar dados sobre venda de jogos.
 
-### Lojas alvo: 
+### Lojas alvo
 - Steam
 - Epic Games
 - Gog
 
-### Atributos Coletados:
+### Atributos Coletados
 - Nome
 - Preço
 - Data de lançamento
@@ -19,10 +19,10 @@ Utilizando o framework [Scrapy](https://scrapy.org) criamos crawlers com o objet
 - Desenvolvedora
 - Editora
 
-### Dados coletados
+## Dados coletados
 Analisando os JSONs gerados ao tratar todos os dados temos os seguintes gráficos:
 
- - #### Overall prices
+ - ### Overall prices
 ```bash
 Class - Count - Percentage - Distribution
   0.00 -  49.20 | 9445 | 79.79% | ███████████████████████████████████████
@@ -48,7 +48,7 @@ Class - Count - Percentage - Distribution
 
 Total Count: 11838
 ```
-- #### Cheaper than 100
+- ### Cheaper than 100
 ```bash
 Class - Count - Percentage - Distribution
  0.00 -  5.00 | 1808 | 16.14% | ████████
@@ -74,7 +74,7 @@ Class - Count - Percentage - Distribution
 
 Total Count: 11202 
 ```
-- #### Cheaper than 10
+- ### Cheaper than 10
 ```bash
 Class - Count - Percentage - Distribution
 0.00 - 0.50 | 891 | 28.69% | ██████████████
@@ -100,7 +100,7 @@ Class - Count - Percentage - Distribution
 
 Total Count: 3106
 ```
-- #### By year
+- ### By year
 ```bash
 Class - Count - Percentage - Distribution
 1980 - 1982 |    1 |  0.01% |
